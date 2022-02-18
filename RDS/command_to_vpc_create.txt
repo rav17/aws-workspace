@@ -1,0 +1,54 @@
+1. aws ec2 create-vpc --cidr-block 10.0.0.0/24 | jq '{VpcId:.Vpc.VpcId,CidrBlock:.Vpc.CidrBlock}
+	{
+  "VpcId": "vpc-061f0b2150fff7b9b",
+  "CidrBlock": "10.0.0.0/24"
+     }
+2. $env:RDS_VPC_ID=vpc-061f0b2150fff7b9b
+3. aws ec2 create-subnet --availability-zone "us-east-1b" --vpc-id $env:RDS_VPC_ID --cidr-block 10.0.0.0/25 | jq '{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+   {
+  "SubnetId": "subnet-08e48c189b4be5551",
+  "AvailabilityZone": "us-east-1b",
+  "CidrBlock": "10.0.0.0/25",
+  "VpcId": "vpc-061f0b2150fff7b9b"
+}
+
+4. aws ec2 create-subnet --availability-zone "us-east-1a" --vpc-id $env:RDS_VPC_ID --cidr-block 10.0.0.128/25 | jq '{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+      {
+  "SubnetId": "subnet-013f6d17a0193fa0d",
+  "AvailabilityZone": "us-east-1a",
+  "CidrBlock": "10.0.0.128/25",
+  "VpcId": "vpc-061f0b2150fff7b9b"
+}
+
+
+5. $ aws ec2 describe-route-tables --filters Name=vpc-id,Values=$env:RDS_VPC_ID | jq '.RouteTables[0].RouteTableId'
+"rtb-08e1cb3db5f0ff6f2"
+
+# For easy reference
+$ $env:RDS_ROUTE_TABLE_ID="rtb-08e1cb3db5f0ff6f2"
+
+# Associate the first subnet with the route table
+$ aws ec2 associate-route-table --route-table-id rtb-08e1cb3db5f0ff6f2 --subnet-id subnet-08e48c189b4be5551
+
+{
+    "AssociationId": "rtbassoc-0502265b2d5cb5b55",
+    "AssociationState": {
+        "State": "associated"
+    }
+}
+
+
+# Associate the second subnet with the route table
+$ aws ec2 associate-route-table --route-table-id rtb-08e1cb3db5f0ff6f2 --subnet-id subnet-013f6d17a0193fa0d
+
+{
+    "AssociationId": "rtbassoc-0c25ab7c2a7e05d36",
+    "AssociationState": {
+        "State": "associated"
+    }
+}
+
+aws rds describe-db-instances --db-instance-identifier demo-postgresql --query "DBInstances[].DBInstanceStatus" --output text
+
+
+aws cloudformation deploy --template-file RDS_postgreSQL.yml --stack-name rds-psotgresql
