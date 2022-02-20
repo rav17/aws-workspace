@@ -1,0 +1,105 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Creates an Amazon FSx for Lustre
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: File system configuration
+      Parameters:
+        - FileSystemName
+        - StorageCapacity
+        - VpcId
+        - SubnetId
+        - SecurityGroupId
+        - ImportPath
+    ParameterLabels:
+      ImportPath:
+        default: Import path
+      FileSystemName:
+        default: Name tag value
+      SecurityGroupId:
+        default: Security group
+      StorageCapacity:
+        default: Storage capacity (GiB)
+      VpcId:
+        default: VPC ID
+      SubnetId:
+        default: Subnet
+
+Parameters:
+  ImportPath:
+    AllowedPattern: ^$|(s3://)([a-z0-9.-]*)$
+    Default: s3://fsxdemos3bucket
+    Description: Import path e.g. s3://my-bucket/import-prefix
+    Type: String
+  FileSystemName:
+    AllowedPattern: ^$|([A-Za-z0-9+-=._:/ ]{0,256})$
+    Default: "Amazon FSx for Lustre 0"
+    Description: Name of file system - name value of key-value pair
+    Type: String               
+  StorageCapacity:
+    Default: 6000
+    Description: Storage capacity of file system in increments of 3600 GiBs
+    MaxValue: 100200
+    MinValue: 3600
+    Type: Number
+  VpcId:
+    AllowedPattern: ^(vpc-)([a-f0-9]{8,17})$
+    Description: The VPC ID of an existing VPC.
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0336a06bbc7282240
+  SubnetId:
+    Description: Select an existing subnet id
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0deb4e266d1269c18
+
+Resources:
+  FileSystemSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Amazon FSx
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 988
+          ToPort: 988
+          CidrIp: 172.31.0.0/16
+        - IpProtocol: tcp
+          FromPort: 1021
+          ToPort: 1023
+          CidrIp: 172.31.0.0/16
+      Tags:
+        - Key: Name
+          Value: "File system security group"     
+      VpcId:
+        !Ref VpcId
+  FileSystem:
+    Type: AWS::FSx::FileSystem
+    Properties:
+      FileSystemType: LUSTRE
+      StorageCapacity: !Ref StorageCapacity
+      SubnetIds:
+        - !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref FileSystemSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref FileSystemName
+      LustreConfiguration:
+        AutoImportPolicy: "NEW"
+        ImportPath: !Ref ImportPath
+        ExportPath: !Sub "${ImportPath}/export"
+        ImportedFileChunkSize: 1024
+        WeeklyMaintenanceStartTime: "6:20:00"
+        DeploymentType: "PERSISTENT_1"
+        PerUnitStorageThroughput: "12"
+        DriveCacheType: "NONE"
+      StorageType: "HDD"
+
+Outputs:
+  FileSystemId:
+    Value: !Ref FileSystem
+  FileSystemSecurityGroupId:
+    Value: !Ref FileSystemSecurityGroup

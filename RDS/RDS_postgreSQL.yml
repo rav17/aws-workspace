@@ -7,12 +7,12 @@ Parameters:
   VpcId:
     Type: String
     Description: VpcId of your existing Virtual Private Cloud(VPC)
-    Default: 'vpc-061f0b2150fff7b9b'
+    Default: 'vpc-0771f3e042da3c042'
   Subnets:
     Type: CommaDelimitedList
     Description: The list of SubnetIds,for at least two Availability Zones in the
       region
-    Default: "subnet-08e48c189b4be5551,subnet-013f6d17a0193fa0d"
+    Default: "subnet-0d86f6896f28aaf8e,subnet-0804c400246acc4b5"
   DBIdentifier:
     Type: String
     Description: The identifier of this postgressql database
@@ -26,24 +26,6 @@ Parameters:
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: must begin with a letter and contain only alphanumeric
       characters.
-  DBUser:
-    Default: 'demoappuser'
-    Description: The database admin account username
-    Type: String
-    MinLength: '1'
-    MaxLength: '16'
-    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
-    ConstraintDescription: must begin with a letter and contain only alphanumeric
-      characters.
-  DBPassword:
-    Description: The database admin account password
-    Type: String
-    NoEcho: true
-    Default: 'demoappuserpassword'
-    MinLength: '8'
-    MaxLength: '64'
-    AllowedPattern: "[a-zA-Z0-9]*"
-    ConstraintDescription: must contain only alphanumeric characters.
   DBAllocatedStorage:
     Default: '20'
     Description: The size of the database (Gb)
