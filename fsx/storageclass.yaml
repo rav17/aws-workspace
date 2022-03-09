@@ -1,0 +1,21 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: {{.Values.storageclass.name}}
+provisioner: {{.Values.storageclass.provisioner}}
+parameters:
+  subnetId: {{.Values.storageclass.parameters.subnetId}}
+  securityGroupIds: {{.Values.storageclass.parameters.securityGroupIds}}
+  {{- if .Values.storageclass.parameters.s3ImportPath }}
+  s3ImportPath: {{.Values.storageclass.parameters.s3ImportPath}}
+  {{- end}}
+  {{- if .Values.storageclass.parameters.s3ExportPath }}
+  s3ExportPath: {{.Values.storageclass.parameters.s3ExportPath}}
+  {{- end}}
+  deploymentType: {{.Values.storageclass.parameters.deploymentType}}
+{{- if .Values.storageclass.mountOptions}}
+mountOptions:
+{{- range .Values.storageclass.mountOptions }}
+  - {{.}}
+{{- end -}}
+{{- end }}
